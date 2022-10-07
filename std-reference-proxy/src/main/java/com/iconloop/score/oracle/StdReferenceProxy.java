@@ -1,4 +1,4 @@
-package com.iconloop.score.example;
+package com.iconloop.score.oracle;
 
 import score.Address;
 import score.Context;
@@ -57,31 +57,33 @@ public class StdReferenceProxy {
         this.ref = newRef;
     }
 
-    @External(readonly=true)
+    @External(readonly = true)
     public Address owner() {
         return this.owner;
     }
 
-    @External(readonly=true)
+    @External(readonly = true)
     public Address ref() {
         return this.ref;
     }
 
-    @External(readonly=true)
+    @External(readonly = true)
     public Map<String, BigInteger> get_reference_data(String base, String quote) {
         return (Map<String, BigInteger>) Context.call(Map.class, this.ref, "get_reference_data", base, quote);
     }
 
-    @External(readonly=true)
+    @External(readonly = true)
     public List<Map<String, BigInteger>> get_reference_data_bulk(String[] bases, String[] quotes) {
-        return (List<Map<String, BigInteger>>) Context.call(List.class, this.ref, "get_reference_data_bulk", bases, quotes);
+        return (List<Map<String, BigInteger>>) Context.call(List.class, this.ref, "get_reference_data_bulk", bases,
+                quotes);
     }
 
-    @External(readonly=true)
+    @External(readonly = true)
     public List<Map<String, BigInteger>> _get_reference_data_bulk(String _bases, String _quotes) {
         String[] bases = _split(_bases, ",");
         String[] quotes = _split(_quotes, ",");
-        return (List<Map<String, BigInteger>>) Context.call(List.class, Context.getAddress(), "get_reference_data_bulk", bases, quotes);
+        return (List<Map<String, BigInteger>>) Context.call(List.class, Context.getAddress(), "get_reference_data_bulk",
+                bases, quotes);
     }
 
     @Payable

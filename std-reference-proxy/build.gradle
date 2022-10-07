@@ -8,7 +8,7 @@ dependencies {
 }
 
 optimizedJar {
-    mainClassName = 'com.iconloop.score.example.StdReferenceProxy'
+    mainClassName = 'com.iconloop.score.oracle.StdReferenceProxy'
     archivesBaseName = 'std-reference-proxy'
 }
 

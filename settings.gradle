@@ -1,4 +1,4 @@
-rootProject.name = 'java-score-examples'
+rootProject.name = 'java-score-oracles'
 include (
     'testinteg',
     'std-reference-basic',

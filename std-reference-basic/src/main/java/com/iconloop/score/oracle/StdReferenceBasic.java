@@ -1,4 +1,4 @@
-package com.iconloop.score.example;
+package com.iconloop.score.oracle;
 
 import score.Address;
 import score.Context;
@@ -55,27 +55,26 @@ public class StdReferenceBasic {
         this.E9 = new BigInteger("1000000000");
     }
 
-    @External(readonly=true)
+    @External(readonly = true)
     public Address owner() {
         return this.owner;
     }
 
-    @External(readonly=true)
+    @External(readonly = true)
     public String isRelayer(Address relayer) {
-        return this.isRelayer.getOrDefault(relayer, false) ? "YES": "NO";
+        return this.isRelayer.getOrDefault(relayer, false) ? "YES" : "NO";
     }
 
-    @External(readonly=true)
+    @External(readonly = true)
     public Map<String, BigInteger> getRefData(String symbol) {
         if (symbol.equals("USD")) {
             return Map.of(
-                "rate",
-                this.E9,
-                "last_update",
-                BigInteger.valueOf(Context.getBlockTimestamp()),
-                "request_id",
-                BigInteger.ZERO
-            );
+                    "rate",
+                    this.E9,
+                    "last_update",
+                    BigInteger.valueOf(Context.getBlockTimestamp()),
+                    "request_id",
+                    BigInteger.ZERO);
         }
 
         BigInteger rate = rates.getOrDefault(symbol, BigInteger.ZERO);
@@ -85,49 +84,49 @@ public class StdReferenceBasic {
         Context.require(resolveTime.compareTo(BigInteger.ZERO) > 0, "REFDATANOTAVAILABLE");
 
         return Map.of(
-            "rate",
-            rate,
-            "last_update",
-            resolveTime,
-            "request_id",
-            requestID
-        );
+                "rate",
+                rate,
+                "last_update",
+                resolveTime,
+                "request_id",
+                requestID);
     }
 
-    @External(readonly=true)
+    @External(readonly = true)
     public Map<String, BigInteger> get_reference_data(String base, String quote) {
-        Map<String,?> b = Context.call(Map.class, Context.getAddress(), "getRefData", base);
-        Map<String,?> q = Context.call(Map.class, Context.getAddress(), "getRefData", quote);
+        Map<String, ?> b = Context.call(Map.class, Context.getAddress(), "getRefData", base);
+        Map<String, ?> q = Context.call(Map.class, Context.getAddress(), "getRefData", quote);
         BigInteger b0 = (BigInteger) b.get("rate");
         BigInteger b1 = (BigInteger) b.get("last_update");
         BigInteger q0 = (BigInteger) q.get("rate");
         BigInteger q1 = (BigInteger) q.get("last_update");
 
         return Map.of(
-            "rate",
-            b0.multiply(this.E9.multiply(this.E9)).divide(q0),
-            "last_update_base",
-            b1,
-            "last_update_quote",
-            q1
-        );
+                "rate",
+                b0.multiply(this.E9.multiply(this.E9)).divide(q0),
+                "last_update_base",
+                b1,
+                "last_update_quote",
+                q1);
     }
 
-    @External(readonly=true)
+    @External(readonly = true)
     public List<Map<String, BigInteger>> get_reference_data_bulk(String[] bases, String[] quotes) {
         Context.require(bases.length == quotes.length, "Size of bases and quotes must be equal");
         Map<String, BigInteger>[] acc = new Map[bases.length];
         for (int i = 0; i < bases.length; i++) {
-            acc[i] = (Map<String, BigInteger>) Context.call(Map.class, Context.getAddress(), "get_reference_data", bases[i], quotes[i]);
+            acc[i] = (Map<String, BigInteger>) Context.call(Map.class, Context.getAddress(), "get_reference_data",
+                    bases[i], quotes[i]);
         }
         return List.of(acc);
     }
 
-    @External(readonly=true)
+    @External(readonly = true)
     public List<Map<String, BigInteger>> _get_reference_data_bulk(String _bases, String _quotes) {
         String[] bases = _split(_bases, ",");
         String[] quotes = _split(_quotes, ",");
-        return (List<Map<String, BigInteger>>) Context.call(List.class, Context.getAddress(), "get_reference_data_bulk", bases, quotes);
+        return (List<Map<String, BigInteger>>) Context.call(List.class, Context.getAddress(), "get_reference_data_bulk",
+                bases, quotes);
     }
 
     @External()
@@ -163,11 +162,10 @@ public class StdReferenceBasic {
             this.requestIDs.set(symbols[idx], new BigInteger(requestID));
 
             RefDataUpdate(
-                symbols[idx],
-                rates[idx],
-                resolveTime,
-                requestID
-            );
+                    symbols[idx],
+                    rates[idx],
+                    resolveTime,
+                    requestID);
         }
     }
 
@@ -177,5 +175,6 @@ public class StdReferenceBasic {
     }
 
     @EventLog
-    protected void RefDataUpdate(String symbol, String rate, String resolveTime, String requestID) {}
+    protected void RefDataUpdate(String symbol, String rate, String resolveTime, String requestID) {
+    }
 }
