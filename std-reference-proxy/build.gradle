@@ -34,7 +34,7 @@ deployJar {
     keystore = rootProject.hasProperty('keystoreName') ? "$keystoreName" : ''
     password = rootProject.hasProperty('keystorePass') ? "$keystorePass" : ''
     parameters {
-        arg('_ref', 'cxc403a33209c0d9faac250317b075e4dceaf1d842')
+        arg('_ref', '<INPUT_BASE CONTRACT ADDRESS>')
     }
 }
 
