@@ -14,6 +14,10 @@ optimizedJar {
 
 deployJar {
     endpoints {
+        mainnet {
+            uri = 'https://ctz.solidwallet.io/api/v3'
+            nid = 0x1
+        }
         lisbon {
             uri = 'https://lisbon.net.solidwallet.io/api/v3'
             nid = 0x2
@@ -30,7 +34,7 @@ deployJar {
     keystore = rootProject.hasProperty('keystoreName') ? "$keystoreName" : ''
     password = rootProject.hasProperty('keystorePass') ? "$keystorePass" : ''
     parameters {
-        arg('_ref', 'cxfd4e337b69adaa64fe2631d5b7b0d133a8534107')
+        arg('_ref', 'cxc403a33209c0d9faac250317b075e4dceaf1d842')
     }
 }
 

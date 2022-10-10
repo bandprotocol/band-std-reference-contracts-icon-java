@@ -3,10 +3,7 @@ package com.iconloop.score.oracle;
 import score.Address;
 import score.Context;
 import score.DictDB;
-import score.VarDB;
-import score.annotation.EventLog;
 import score.annotation.External;
-import score.annotation.Payable;
 
 import java.math.BigInteger;
 import java.util.List;
@@ -19,30 +16,6 @@ public class StdReferenceBasic {
     private final DictDB<String, BigInteger> rates;
     private final DictDB<String, BigInteger> resolveTimes;
     private final DictDB<String, BigInteger> requestIDs;
-
-    private String[] _split(String s, String sep) {
-        int sepCount = 1;
-        for (int i = 0; i < s.length(); i++) {
-            if (s.substring(i, i + 1).equals(sep)) {
-                sepCount++;
-            }
-        }
-
-        String[] tmp = new String[sepCount];
-        int j = 0;
-        while (s.length() > 0) {
-            int i = s.indexOf(sep);
-            if (i < 0) {
-                tmp[j] = s;
-                break;
-            } else {
-                tmp[j] = s.substring(0, i);
-            }
-            s = s.substring(i + 1);
-            j++;
-        }
-        return tmp;
-    }
 
     public StdReferenceBasic() {
         this.owner = Context.getOrigin();
@@ -121,14 +94,6 @@ public class StdReferenceBasic {
         return List.of(acc);
     }
 
-    @External(readonly = true)
-    public List<Map<String, BigInteger>> _get_reference_data_bulk(String _bases, String _quotes) {
-        String[] bases = _split(_bases, ",");
-        String[] quotes = _split(_quotes, ",");
-        return (List<Map<String, BigInteger>>) Context.call(List.class, Context.getAddress(), "get_reference_data_bulk",
-                bases, quotes);
-    }
-
     @External()
     public void transferOwnership(Address newOwner) {
         Context.require(Context.getOrigin().equals(this.owner), "Origin is not the owner");
@@ -148,33 +113,17 @@ public class StdReferenceBasic {
     }
 
     @External
-    public void relay(String _symbols, String _rates, String resolveTime, String requestID) {
+    public void relay(String[] symbols, BigInteger[] rates, BigInteger resolveTime, BigInteger requestID) {
         Context.require(this.isRelayer.getOrDefault(Context.getOrigin(), false), "NOTARELAYER");
-
-        String[] symbols = _split(_symbols, ",");
-        String[] rates = _split(_rates, ",");
 
         Context.require(rates.length == symbols.length, "BADRATESLENGTH");
 
         for (int idx = 0; idx < symbols.length; idx++) {
-            this.rates.set(symbols[idx], new BigInteger(rates[idx]));
-            this.resolveTimes.set(symbols[idx], new BigInteger(resolveTime).multiply(new BigInteger("1000000")));
-            this.requestIDs.set(symbols[idx], new BigInteger(requestID));
+            this.rates.set(symbols[idx], rates[idx]);
+            this.resolveTimes.set(symbols[idx], resolveTime.multiply(new BigInteger("1000000")));
+            this.requestIDs.set(symbols[idx], requestID);
 
-            RefDataUpdate(
-                    symbols[idx],
-                    rates[idx],
-                    resolveTime,
-                    requestID);
         }
     }
 
-    @Payable
-    public void fallback() {
-        // just receive incoming funds
-    }
-
-    @EventLog
-    protected void RefDataUpdate(String symbol, String rate, String resolveTime, String requestID) {
-    }
 }
