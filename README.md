@@ -80,11 +80,11 @@ public Map<String, BigInteger> demo(Address proxyAddr, String base, String quote
 
 Where the result from demo(proxy_address, "BTC", "USD") would yield as hexadecimal string value:
 
-```bash
+```json
 {
-        "rate": "0x4E5F2DB564771E70000",
-        "last_update_base": "0x62EB4E85",
-        "last_update_quote": "0x62EB5379"
+  "rate": "0x4E5F2DB564771E70000",
+  "last_update_base": "0x62EB4E85",
+  "last_update_quote": "0x62EB5379"
 }
 ```
 
