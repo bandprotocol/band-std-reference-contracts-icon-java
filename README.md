@@ -1,100 +1,147 @@
-# Java Std Reference
+# Band Protocol's Java Standard Reference Contracts
 
-Build
-```shell
-./gradlew optimizedJar
+## Overview
+
+This repository contains the Java code for Band Protocol's StdReference contracts. The live contract
+addresses can be found in
+our [documentation](https://docs.bandchain.org/band-standard-dataset/supported-blockchains.html).
+
+## Build
+
+### Contract
+
+To compile all contracts, run the following script in the repo root.
+
+```console
+$ ./gradlew build
+$ ./gradlew optimizedJar
 ```
 
-Deployment
-```shell
-./gradlew std-reference-basic:deployToLisbon -PkeystoreName=keystore.json  -PkeystorePass=PASSWORD
-./gradlew std-reference-proxy:deployToLisbon -PkeystoreName=keystore.json  -PkeystorePass=PASSWORD
+The optimized jar files can be found in `std-reference-basic/build/libs/` and `std-reference-proxy/build/libs/` directory.
 
-./gradlew std-reference-basic:deployToBerlin -PkeystoreName=keystore.json  -PkeystorePass=PASSWORD
-./gradlew std-reference-proxy:deployToBerlin -PkeystoreName=keystore.json  -PkeystorePass=PASSWORD
+## Usage
+
+To query the prices from Band Protocol's StdReference contracts, the contract looking to use the price values should
+query Band Protocol's `std_reference_proxy` contract.
+
+### QueryMsg
+
+Acceptable query functions for the `std_reference_proxy` contract are as follows:
+
+```java
+public Map<String, BigInteger> get_reference_data(String base, String quote) {
+        return (Map<String, BigInteger>) Context.call(Map.class, this.ref, "getReferenceData", base, quote);
+}
+
+public List<Map<String, BigInteger>> get_reference_data_bulk(String[] bases, String[] quotes) {
+        return (List<Map<String, BigInteger>>) Context.call(List.class, this.ref, "getReferenceDataBulk", bases,
+                quotes);
+}
 ```
 
-Relay
-```shell
-# lisbon
-../goloop/bin/goloop rpc sendtx call --to cxfd4e337b69adaa64fe2631d5b7b0d133a8534107 --method relay --param _symbols=BTC,ETH --param _rates=36020280000000,2701019900000 --param resolveTime=1651834443 --param requestID=8001584 --uri https://lisbon.net.solidwallet.io/api/v3 --key_store keystore.json --key_password PASSWORD --nid 2 --step_limit=1000000
+### Query Result
 
-# Berlin
-../goloop/bin/goloop rpc sendtx call --to cx41d9967fb59a72952dea393628475932b4c2ae02 --method relay --param _symbols=BTC,ETH --param _rates=36020280000000,2701019900000 --param resolveTime=1651834443 --param requestID=8001584 --uri https://berlin.net.solidwallet.io/api/v3 --key_store keystore.json --key_password PASSWORD --nid 7 --step_limit=1000000
+The `result` data is defined as mapping:
+
+```java
+Map.of(
+        "rate", value1,
+        "last_update_base", value2,
+        "last_update_quote", value3
+)
 ```
 
-### Deployed contracts on Lisbon
+where each field:
 
-- [std-reference-basic](https://lisbon.tracker.solidwallet.io/contract/cxfd4e337b69adaa64fe2631d5b7b0d133a8534107)
-- [std-reference-proxy](https://lisbon.tracker.solidwallet.io/contract/cx03018fc77ee8862c25f1656161f8a6dbe53620d3)
-- [example relayed tx](https://lisbon.tracker.solidwallet.io/transaction/0xcd7d49323b8c29bab974e3c62ddab9ef2349a52533cf6c6fe1707943760fad9c)
+- `rate` is defined as the base/quote exchange rate multiplied by 1e18.
+- `last_update_base` is defined as the UNIX epoch of the last time the base price was updated.
+- `last_update_quote` is defined as the UNIX epoch of the last time the quote price was updated.
 
-example command for price querying from std-reference-proxy
-```shell
-../goloop/bin/goloop rpc call --to cx03018fc77ee8862c25f1656161f8a6dbe53620d3 --method _get_reference_data_bulk --param _bases="BTC,ETH,USD,BTC,ETH" --param _quotes="USD,USD,USD,ETH,ETH" --uri https://lisbon.net.solidwallet.io/api/v3
+### GetReferenceData
+
+#### Input
+
+- The base symbol as type `String`
+- The quote symbol as type `String`
+
+#### Output
+
+- The base quote pair result as mapping of `ReferenceData`'s field and its value
+
+#### Example
+
+For example, if we wanted to query the price of `BTC/USD`, the demo function below shows how this can be done.
+
+```java
+public Map<String, BigInteger> demo(Address proxyAddr, String base, String quote) {
+        return (Map<String, BigInteger>) Context.call(Map.class, proxyAddr, "get_reference_data", base, quote);
+    }
+```
+
+Where the result from demo(proxy_address, "BTC", "USD") would yield as hexadecimal string value:
+
+```bash
+{
+        "rate": "0x4E5F2DB564771E70000",
+        "last_update_base": "0x62EB4E85",
+        "last_update_quote": "0x62EB5379"
+}
+```
+
+and the results can be interpreted as:
+
+- BTC/USD
+  - `rate = 23131.27 BTC/USD`
+  - `lastUpdatedBase = 1659588229`
+  - `lastUpdatedQuote = 1659589497`
+
+### GetReferenceDataBulk
+
+#### Input
+
+- A array of base symbols as type `String[]`
+- A array of quote symbol as type `String[]`
+
+#### Output
+
+- A array of the base quote pair mapping results as type `List<Map<String, BigInteger>>`
+
+#### Example
+
+For example, if we wanted to query the price of `BTC/USD` and `ETH/BTC`, the demo contract below shows how this can be
+done.
+
+```java
+public List<Map<String, BigInteger>> demo(Address proxyAddr, String[] bases, String[] quotes) {
+        return (List<Map<String, BigInteger>>) Context.call(List.class, proxyAddr, "get_reference_data_bulk", bases,
+                quotes);
+    }
+```
+
+Where the result from `demo(proxy_address, ["BTC", "ETH"], ["USD", "BTC"])` would yield:
+
+```json
 [
   {
-    "last_update_base": "0x5de55ad33e8c0",
-    "last_update_quote": "0x5e1c9cb893a19",
-    "rate": "0x7a0a9cd78609b6c0000"
+    "rate": "0x4E5F2DB564771E70000",
+    "last_update_base": "0x62EB4E85",
+    "last_update_quote": "0x62EB5379"
   },
   {
-    "last_update_base": "0x5de55ad33e8c0",
-    "last_update_quote": "0x5e1c9cb893a19",
-    "rate": "0x926c2e586ee91bc000"
-  },
-  {
-    "last_update_base": "0x5e1c9cb893a19",
-    "last_update_quote": "0x5e1c9cb893a19",
-    "rate": "0xde0b6b3a7640000"
-  },
-  {
-    "last_update_base": "0x5de55ad33e8c0",
-    "last_update_quote": "0x5de55ad33e8c0",
-    "rate": "0xb9124dc7bbd25324"
-  },
-  {
-    "last_update_base": "0x5de55ad33e8c0",
-    "last_update_quote": "0x5de55ad33e8c0",
-    "rate": "0xde0b6b3a7640000"
+    "rate": "0xFE616F75EB639A",
+    "last_update_base": "0x62EB4E85",
+    "last_update_quote": "0x62EB5379"
   }
 ]
 ```
 
-### Deployed contracts on Berlin
+and the results can be interpreted as:
 
-- [std-reference-basic](https://berlin.tracker.solidwallet.io/contract/cx41d9967fb59a72952dea393628475932b4c2ae02)
-- [std-reference-proxy](https://berlin.tracker.solidwallet.io/contract/cx7906b65f91980eb4d6541d9cab3550123c1a7cb1)
-- [example relayed tx](https://berlin.tracker.solidwallet.io/transaction/0xe3a80e5b62fbd00bb01c0e71f7d93a20d4b20e76f9eed8a38429fecfed425be0)
-
-example command for price querying from std-reference-proxy
-```
-../goloop/bin/goloop rpc call --to cx41d9967fb59a72952dea393628475932b4c2ae02 --method _get_reference_data_bulk --param _bases="BTC,ETH,USD,BTC,ETH" --param _quotes="USD,USD,USD,ETH,ETH" --uri https://berlin.net.solidwallet.io/api/v3
-[
-  {
-    "last_update_base": "0x5de55ad33e8c0",
-    "last_update_quote": "0x5e1c995d90176",
-    "rate": "0x7a0a9cd78609b6c0000"
-  },
-  {
-    "last_update_base": "0x5de55ad33e8c0",
-    "last_update_quote": "0x5e1c995d90176",
-    "rate": "0x926c2e586ee91bc000"
-  },
-  {
-    "last_update_base": "0x5e1c995d90176",
-    "last_update_quote": "0x5e1c995d90176",
-    "rate": "0xde0b6b3a7640000"
-  },
-  {
-    "last_update_base": "0x5de55ad33e8c0",
-    "last_update_quote": "0x5de55ad33e8c0",
-    "rate": "0xb9124dc7bbd25324"
-  },
-  {
-    "last_update_base": "0x5de55ad33e8c0",
-    "last_update_quote": "0x5de55ad33e8c0",
-    "rate": "0xde0b6b3a7640000"
-  }
-]
-```
+- BTC/USD
+  - `rate = 23131.27 BTC/USD`
+  - `last_update_base = 1659588229`
+  - `last_update_quote = 1659589497`
+- ETH/BTC
+  - `rate = 0.07160177543213148 ETH/BTC`
+  - `last_update_base = 1659588229`
+  - `last_update_quote = 1659589497`

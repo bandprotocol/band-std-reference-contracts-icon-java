@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.Map;
 
 public class StdReferenceBasic {
+
     private Address owner;
     private final BigInteger E9;
     private final DictDB<Address, Boolean> isRelayer;
@@ -18,7 +19,7 @@ public class StdReferenceBasic {
     private final DictDB<String, BigInteger> requestIDs;
 
     public StdReferenceBasic() {
-        this.owner = Context.getOrigin();
+        this.owner = Context.getCaller();
         this.isRelayer = Context.newDictDB("isRelayer", Boolean.class);
         this.rates = Context.newDictDB("rates", BigInteger.class);
         this.resolveTimes = Context.newDictDB("resolveTimes", BigInteger.class);
@@ -34,8 +35,8 @@ public class StdReferenceBasic {
     }
 
     @External(readonly = true)
-    public String isRelayer(Address relayer) {
-        return this.isRelayer.getOrDefault(relayer, false) ? "YES" : "NO";
+    public boolean isRelayer(Address relayer) {
+        return this.isRelayer.getOrDefault(relayer, false);
     }
 
     @External(readonly = true)
@@ -66,62 +67,59 @@ public class StdReferenceBasic {
     }
 
     @External(readonly = true)
-    public Map<String, BigInteger> get_reference_data(String base, String quote) {
-        Map<String, ?> b = Context.call(Map.class, Context.getAddress(), "getRefData", base);
-        Map<String, ?> q = Context.call(Map.class, Context.getAddress(), "getRefData", quote);
-        BigInteger b0 = (BigInteger) b.get("rate");
-        BigInteger b1 = (BigInteger) b.get("last_update");
-        BigInteger q0 = (BigInteger) q.get("rate");
-        BigInteger q1 = (BigInteger) q.get("last_update");
+    public Map<String, BigInteger> getReferenceData(String base, String quote) {
+        Map<String, BigInteger> b = Context.call(Map.class, Context.getAddress(), "getRefData", base);
+        Map<String, BigInteger> q = Context.call(Map.class, Context.getAddress(), "getRefData", quote);
 
         return Map.of(
                 "rate",
-                b0.multiply(this.E9.multiply(this.E9)).divide(q0),
+                b.get("rate").multiply(this.E9.multiply(this.E9)).divide(q.get("rate")),
                 "last_update_base",
-                b1,
+                b.get("last_update"),
                 "last_update_quote",
-                q1);
+                q.get("last_update"));
     }
 
     @External(readonly = true)
-    public List<Map<String, BigInteger>> get_reference_data_bulk(String[] bases, String[] quotes) {
+    public List<Map<String, BigInteger>> getReferenceDataBulk(String[] bases, String[] quotes) {
         Context.require(bases.length == quotes.length, "Size of bases and quotes must be equal");
-        Map<String, BigInteger>[] acc = new Map[bases.length];
+        Map<String, BigInteger>[] result = new Map[bases.length];
         for (int i = 0; i < bases.length; i++) {
-            acc[i] = (Map<String, BigInteger>) Context.call(Map.class, Context.getAddress(), "get_reference_data",
+            result[i] = Context.call(Map.class, Context.getAddress(), "getReferenceData",
                     bases[i], quotes[i]);
         }
-        return List.of(acc);
+        return List.of(result);
     }
 
     @External()
     public void transferOwnership(Address newOwner) {
-        Context.require(Context.getOrigin().equals(this.owner), "Origin is not the owner");
+        Context.require(Context.getCaller().equals(this.owner), "Caller is not the owner");
         this.owner = newOwner;
     }
 
     @External()
     public void addRelayer(Address relayer) {
-        Context.require(Context.getOrigin().equals(this.owner), "Origin is not the owner");
+        Context.require(Context.getCaller().equals(this.owner), "Caller is not the owner");
         this.isRelayer.set(relayer, true);
     }
 
     @External()
     public void removeRelayer(Address relayer) {
-        Context.require(Context.getOrigin().equals(this.owner), "Origin is not the owner");
+        Context.require(Context.getCaller().equals(this.owner), "Caller is not the owner");
         this.isRelayer.set(relayer, false);
     }
 
     @External
     public void relay(String[] symbols, BigInteger[] rates, BigInteger resolveTime, BigInteger requestID) {
-        Context.require(this.isRelayer.getOrDefault(Context.getOrigin(), false), "NOTARELAYER");
-
+        Context.require(this.isRelayer.getOrDefault(Context.getCaller(), false), "NOTARELAYER");
         Context.require(rates.length == symbols.length, "BADRATESLENGTH");
 
         for (int idx = 0; idx < symbols.length; idx++) {
-            this.rates.set(symbols[idx], rates[idx]);
-            this.resolveTimes.set(symbols[idx], resolveTime.multiply(new BigInteger("1000000")));
-            this.requestIDs.set(symbols[idx], requestID);
+            if (resolveTime.compareTo(this.resolveTimes.getOrDefault(symbols[idx], BigInteger.ZERO)) > 0) {
+                this.rates.set(symbols[idx], rates[idx]);
+                this.resolveTimes.set(symbols[idx], resolveTime.multiply(new BigInteger("1000000")));
+                this.requestIDs.set(symbols[idx], requestID);
+            }
 
         }
     }
