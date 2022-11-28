@@ -1,0 +1,6 @@
+rootProject.name = 'java-score-oracles'
+include (
+    'std-reference-basic',
+    'std-reference-proxy',
+    'oracle-demo'
+)
