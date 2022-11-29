@@ -120,7 +120,18 @@ public class StdReferenceBasic {
                 this.resolveTimes.set(symbols[idx], resolveTime.multiply(new BigInteger("1000000")));
                 this.requestIDs.set(symbols[idx], requestID);
             }
+        }
+    }
 
+    @External
+    public void forceRelay(String[] symbols, BigInteger[] rates, BigInteger resolveTime, BigInteger requestID) {
+        Context.require(this.isRelayer.getOrDefault(Context.getCaller(), false), "NOTARELAYER");
+        Context.require(rates.length == symbols.length, "BADRATESLENGTH");
+
+        for (int idx = 0; idx < symbols.length; idx++) {
+            this.rates.set(symbols[idx], rates[idx]);
+            this.resolveTimes.set(symbols[idx], resolveTime.multiply(new BigInteger("1000000")));
+            this.requestIDs.set(symbols[idx], requestID);
         }
     }
 
