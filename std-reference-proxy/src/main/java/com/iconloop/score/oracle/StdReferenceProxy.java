@@ -41,13 +41,12 @@ public class StdReferenceProxy {
 
     @External(readonly = true)
     public Map<String, BigInteger> get_reference_data(String _base, String _quote) {
-        return (Map<String, BigInteger>) Context.call(Map.class, this.ref, "getReferenceData", base, quote);
+        return (Map<String, BigInteger>) Context.call(Map.class, this.ref, "getReferenceData", _base, _quote);
     }
 
     @External(readonly = true)
     public List<Map<String, BigInteger>> get_reference_data_bulk(String[] _bases, String[] _quotes) {
-        return (List<Map<String, BigInteger>>) Context.call(List.class, this.ref, "getReferenceDataBulk", bases,
-                quotes);
+        return (List<Map<String, BigInteger>>) Context.call(List.class, this.ref, "getReferenceDataBulk", _bases, _quotes);
     }
 
 }
