@@ -3,6 +3,7 @@ package com.iconloop.score.oracle;
 import score.Address;
 import score.Context;
 import score.DictDB;
+import score.VarDB;
 import score.annotation.External;
 
 import java.math.BigInteger;
@@ -11,7 +12,7 @@ import java.util.Map;
 
 public class StdReferenceBasic {
 
-    private Address owner;
+    private final VarDB<Address> owner = Context.newVarDB("owner", Address.class);
     private final BigInteger E9 = new BigInteger("1000000000");
     private final DictDB<Address, Boolean> isRelayer = Context.newDictDB("isRelayer", Boolean.class);
     private final DictDB<String, BigInteger> rates = Context.newDictDB("rates", BigInteger.class);
@@ -19,14 +20,15 @@ public class StdReferenceBasic {
     private final DictDB<String, BigInteger> requestIDs = Context.newDictDB("requestIDs", BigInteger.class);
 
     public StdReferenceBasic() {
-        if (this.owner == null) {
-            this.owner = Context.getCaller();
+        if (this.owner.get() == null) {
+            this.owner.set(Context.getCaller());
+            this.isRelayer.set(this.owner.get(), true);
         }
     }
 
     @External(readonly = true)
     public Address owner() {
-        return this.owner;
+        return this.owner.get();
     }
 
     @External(readonly = true)
@@ -88,19 +90,19 @@ public class StdReferenceBasic {
 
     @External()
     public void transferOwnership(Address newOwner) {
-        Context.require(Context.getCaller().equals(this.owner), "Caller is not the owner");
-        this.owner = newOwner;
+        Context.require(Context.getCaller().equals(this.owner.get()), "Caller is not the owner");
+        this.owner.set(newOwner);
     }
 
     @External()
     public void addRelayer(Address relayer) {
-        Context.require(Context.getCaller().equals(this.owner), "Caller is not the owner");
+        Context.require(Context.getCaller().equals(this.owner.get()), "Caller is not the owner");
         this.isRelayer.set(relayer, true);
     }
 
     @External()
     public void removeRelayer(Address relayer) {
-        Context.require(Context.getCaller().equals(this.owner), "Caller is not the owner");
+        Context.require(Context.getCaller().equals(this.owner.get()), "Caller is not the owner");
         this.isRelayer.set(relayer, false);
     }
 
