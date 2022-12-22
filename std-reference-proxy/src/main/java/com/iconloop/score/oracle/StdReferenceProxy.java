@@ -13,7 +13,9 @@ public class StdReferenceProxy {
     private Address ref;
 
     public StdReferenceProxy(Address _ref) {
-        this.owner = Context.getCaller();
+        if (this.owner == null) {
+            this.owner = Context.getCaller();
+        }
         this.ref = _ref;
     }
 
@@ -46,7 +48,8 @@ public class StdReferenceProxy {
 
     @External(readonly = true)
     public List<Map<String, BigInteger>> get_reference_data_bulk(String[] _bases, String[] _quotes) {
-        return (List<Map<String, BigInteger>>) Context.call(List.class, this.ref, "getReferenceDataBulk", _bases, _quotes);
+        return (List<Map<String, BigInteger>>) Context.call(List.class, this.ref, "getReferenceDataBulk", _bases,
+                _quotes);
     }
 
 }

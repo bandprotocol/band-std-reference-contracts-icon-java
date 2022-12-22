@@ -19,7 +19,9 @@ public class StdReferenceBasic {
     private final DictDB<String, BigInteger> requestIDs;
 
     public StdReferenceBasic() {
-        this.owner = Context.getCaller();
+        if (this.owner == null) {
+            this.owner = Context.getCaller();
+        }
         this.isRelayer = Context.newDictDB("isRelayer", Boolean.class);
         this.rates = Context.newDictDB("rates", BigInteger.class);
         this.resolveTimes = Context.newDictDB("resolveTimes", BigInteger.class);
