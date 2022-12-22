@@ -12,23 +12,16 @@ import java.util.Map;
 public class StdReferenceBasic {
 
     private Address owner;
-    private final BigInteger E9;
-    private final DictDB<Address, Boolean> isRelayer;
-    private final DictDB<String, BigInteger> rates;
-    private final DictDB<String, BigInteger> resolveTimes;
-    private final DictDB<String, BigInteger> requestIDs;
+    private final BigInteger E9 = new BigInteger("1000000000");
+    private final DictDB<Address, Boolean> isRelayer = Context.newDictDB("isRelayer", Boolean.class);
+    private final DictDB<String, BigInteger> rates = Context.newDictDB("rates", BigInteger.class);
+    private final DictDB<String, BigInteger> resolveTimes = Context.newDictDB("resolveTimes", BigInteger.class);
+    private final DictDB<String, BigInteger> requestIDs = Context.newDictDB("requestIDs", BigInteger.class);
 
     public StdReferenceBasic() {
         if (this.owner == null) {
             this.owner = Context.getCaller();
         }
-        this.isRelayer = Context.newDictDB("isRelayer", Boolean.class);
-        this.rates = Context.newDictDB("rates", BigInteger.class);
-        this.resolveTimes = Context.newDictDB("resolveTimes", BigInteger.class);
-        this.requestIDs = Context.newDictDB("requestIDs", BigInteger.class);
-
-        this.isRelayer.set(this.owner, true);
-        this.E9 = new BigInteger("1000000000");
     }
 
     @External(readonly = true)

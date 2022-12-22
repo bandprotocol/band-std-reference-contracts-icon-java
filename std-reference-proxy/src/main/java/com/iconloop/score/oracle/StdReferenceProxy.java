@@ -15,8 +15,8 @@ public class StdReferenceProxy {
     public StdReferenceProxy(Address _ref) {
         if (this.owner == null) {
             this.owner = Context.getCaller();
+            this.ref = _ref;
         }
-        this.ref = _ref;
     }
 
     @External()
