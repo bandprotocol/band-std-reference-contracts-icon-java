@@ -78,9 +78,7 @@ public class StdReferenceBasic {
     }
 
     @External(readonly = true)
-    public List<Map<String, BigInteger>> getReferenceDataBulk(String _bases, String _quotes) {
-        String[] bases = _bases.split("\\s*,\\s*");
-        String[] quotes = _quotes.split("\\s*,\\s*");
+    public List<Map<String, BigInteger>> getReferenceDataBulk(String[] bases, String[] quotes) {
         Context.require(bases.length == quotes.length, "Size of bases and quotes must be equal");
         Map<String, BigInteger>[] result = new Map[bases.length];
         for (int i = 0; i < bases.length; i++) {
