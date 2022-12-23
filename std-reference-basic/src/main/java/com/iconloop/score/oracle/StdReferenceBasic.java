@@ -65,8 +65,8 @@ public class StdReferenceBasic {
 
     @External(readonly = true)
     public Map<String, BigInteger> getReferenceData(String base, String quote) {
-        Map<String, BigInteger> b = Context.call(Map.class, Context.getAddress(), "getRefData", base);
-        Map<String, BigInteger> q = Context.call(Map.class, Context.getAddress(), "getRefData", quote);
+        Map<String, BigInteger> b = getRefData(base);
+        Map<String, BigInteger> q = getRefData(quote);
 
         return Map.of(
                 "rate",
@@ -82,8 +82,7 @@ public class StdReferenceBasic {
         Context.require(bases.length == quotes.length, "Size of bases and quotes must be equal");
         Map<String, BigInteger>[] result = new Map[bases.length];
         for (int i = 0; i < bases.length; i++) {
-            result[i] = Context.call(Map.class, Context.getAddress(), "getReferenceData",
-                    bases[i], quotes[i]);
+            result[i] = getReferenceData(bases[i], quotes[i]);
         }
         return List.of(result);
     }
