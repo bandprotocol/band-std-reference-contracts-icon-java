@@ -73,8 +73,8 @@ where each field:
 For example, if we wanted to query the price of `BTC/USD`, the demo function below shows how this can be done.
 
 ```java
-public Map<String, BigInteger> demo(Address proxyAddr, String base, String quote) {
-        return (Map<String, BigInteger>) Context.call(Map.class, proxyAddr, "get_reference_data", base, quote);
+public Map<String, BigInteger> demo(Address proxyAddr, String _base, String _quote) {
+        return (Map<String, BigInteger>) Context.call(Map.class, proxyAddr, "get_reference_data", _base, _quote);
     }
 ```
 
@@ -99,8 +99,8 @@ and the results can be interpreted as:
 
 #### Input
 
-- A array of base symbols as type `String[]`
-- A array of quote symbol as type `String[]`
+- A array of base symbols as type `String`
+- A array of quote symbol as type `String`
 
 #### Output
 
@@ -112,13 +112,13 @@ For example, if we wanted to query the price of `BTC/USD` and `ETH/BTC`, the dem
 done.
 
 ```java
-public List<Map<String, BigInteger>> demo(Address proxyAddr, String[] bases, String[] quotes) {
-        return (List<Map<String, BigInteger>>) Context.call(List.class, proxyAddr, "get_reference_data_bulk", bases,
-                quotes);
+public List<Map<String, BigInteger>> demo(Address proxyAddr, String _bases, String _quotes) {
+        return (List<Map<String, BigInteger>>) Context.call(List.class, proxyAddr, "get_reference_data_bulk", _bases,
+                _quotes);
     }
 ```
 
-Where the result from `demo(proxy_address, ["BTC", "ETH"], ["USD", "BTC"])` would yield:
+Where the result from `demo(proxy_address, "BTC,ETH", "USD,BTC"])` would yield:
 
 ```json
 [
