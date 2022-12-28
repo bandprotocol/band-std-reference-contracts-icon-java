@@ -11,7 +11,6 @@ import java.util.List;
 import java.util.Map;
 
 public class StdReferenceBasic {
-
     private final VarDB<Address> owner = Context.newVarDB("owner", Address.class);
     private final BigInteger E9 = new BigInteger("1000000000");
     private final DictDB<Address, Boolean> isRelayer = Context.newDictDB("isRelayer", Boolean.class);

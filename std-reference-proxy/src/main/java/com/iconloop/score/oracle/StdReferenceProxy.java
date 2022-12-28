@@ -58,10 +58,41 @@ public class StdReferenceProxy {
                 quotes);
     }
 
+    private String[] _split(String s) {
+        int sepCount = 0;
+        for (int i = 0; i < s.length(); i++) {
+            if (s.charAt(i) == ',') {
+                sepCount++;
+            }
+        }
+
+        String[] results = new String[sepCount + 1];
+        for (int i = 0; i < sepCount; i++) {
+            int idx = s.indexOf(",");
+            String tmp = s.substring(0, idx).trim();
+            // Remove quote
+            results[i] = tmp.substring(1, tmp.length() - 1);
+            // results[i] = tmp;
+            // results[i] = s.substring(1, s.length() - 1);
+            s = s.substring(idx + 1);
+        }
+        s = s.trim();
+        results[sepCount] = s.substring(1, s.length() - 1);
+        return results;
+    }
+
+    private String _remove_bracket(String s) {
+        return s.substring(1, s.length() - 1);
+    }
+
+    public String[] _parse(String s) {
+        return _split(_remove_bracket(s));
+    }
+
     @External(readonly = true)
     public List<Map<String, BigInteger>> get_reference_data_bulk(String _bases, String _quotes) {
-        String[] bases = _bases.split("\\s*,\\s*");
-        String[] quotes = _quotes.split("\\s*,\\s*");
+        String[] bases = _parse(_bases);
+        String[] quotes = _parse(_quotes);
         return getReferenceDataBulk(bases, quotes);
     }
 }
