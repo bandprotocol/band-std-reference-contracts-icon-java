@@ -25,11 +25,10 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.math.BigInteger;
 import java.util.Map;
-import java.util.List;
 
 class StdReferenceBasicTest extends TestBase {
     private static final ServiceManager sm = getServiceManager();
@@ -37,6 +36,7 @@ class StdReferenceBasicTest extends TestBase {
     private static Account[] relayers;
     private static Score refScore;
 
+    private BigInteger E6 = new BigInteger("1000000");
     private BigInteger E9 = new BigInteger("1000000000");
 
     @BeforeAll
@@ -48,7 +48,7 @@ class StdReferenceBasicTest extends TestBase {
         relayers = new Account[3];
         for (int i = 0; i < relayers.length; i++) {
             relayers[i] = sm.createAccount(100);
-            refScore.invoke(owner, "addRelayer", relayers[i]);
+            refScore.invoke(owner, "addRelayer", relayers[i].getAddress());
         }
     }
 
@@ -60,10 +60,19 @@ class StdReferenceBasicTest extends TestBase {
         BigInteger requestID = BigInteger.valueOf(10323);
         refScore.invoke(relayers[0], "relay", symbols, rates, resolveTime, requestID);
 
-        var result = refScore.call("getReferenceData", "BTC", "USD");
-        Map<String, BigInteger>[] results = new Map[1];
-        results[0] = Map.of("rate", rates[0].multiply(E9));
-        var expected = List.of(results);
-        assertEquals(expected, result);
+        var result = (Map<String, BigInteger>) (refScore.call("getReferenceData", "BTC", "USD"));
+
+        assertEquals(rates[0].multiply(E9), result.get("rate"));
+        assertEquals(resolveTime.multiply(E6), result.get("last_update_base"));
+    }
+
+    @Test
+    void relayByOtherAccount() {
+        String[] symbols = { "BTC", "ICX" };
+        BigInteger[] rates = { new BigInteger("16841900000000"), new BigInteger("149978000") };
+        BigInteger resolveTime = BigInteger.valueOf(1671780359);
+        BigInteger requestID = BigInteger.valueOf(10323);
+        assertThrows(AssertionError.class,
+                () -> refScore.invoke(sm.createAccount(10), "relay", symbols, rates, resolveTime, requestID));
     }
 }
