@@ -125,7 +125,7 @@ public class StdReferenceBasic {
 
         for (int idx = 0; idx < symbols.length; idx++) {
             this.rates.set(symbols[idx], rates[idx]);
-            this.resolveTimes.set(symbols[idx], resolveTime.multiply(new BigInteger("1000000")));
+            this.resolveTimes.set(symbols[idx], resolveTime);
             this.requestIDs.set(symbols[idx], requestID);
         }
     }
