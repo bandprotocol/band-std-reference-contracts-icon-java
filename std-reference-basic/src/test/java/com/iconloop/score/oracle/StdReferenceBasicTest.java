@@ -22,6 +22,7 @@ import com.iconloop.score.test.TestBase;
 import com.iconloop.score.test.ServiceManager;
 
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -39,8 +40,8 @@ class StdReferenceBasicTest extends TestBase {
     private BigInteger E6 = new BigInteger("1000000");
     private BigInteger E9 = new BigInteger("1000000000");
 
-    @BeforeAll
-    public static void setup() throws Exception {
+    @BeforeEach
+    public void setup() throws Exception {
         // setup owner and deploy
         refScore = sm.deploy(owner, StdReferenceBasic.class);
 
@@ -74,5 +75,51 @@ class StdReferenceBasicTest extends TestBase {
         BigInteger requestID = BigInteger.valueOf(10323);
         assertThrows(AssertionError.class,
                 () -> refScore.invoke(sm.createAccount(10), "relay", symbols, rates, resolveTime, requestID));
+    }
+
+    @Test
+    void relayWithIncreaseTime() {
+        String[] symbols = { "BTC", "ICX" };
+        BigInteger[] rates = { new BigInteger("16841900000000"), new BigInteger("149978000") };
+        BigInteger resolveTime = BigInteger.valueOf(1671780359);
+        BigInteger requestID = BigInteger.valueOf(10323);
+        refScore.invoke(relayers[0], "relay", symbols, rates, resolveTime, requestID);
+
+        var result = (Map<String, BigInteger>) (refScore.call("getReferenceData", "BTC", "USD"));
+
+        assertEquals(rates[0].multiply(E9), result.get("rate"));
+        assertEquals(resolveTime.multiply(E6), result.get("last_update_base"));
+
+        BigInteger[] newRates = { new BigInteger("16900000000000"), new BigInteger("149980000") };
+        resolveTime = BigInteger.valueOf(1671780459);
+        refScore.invoke(relayers[1], "relay", symbols, newRates, resolveTime, requestID.add(BigInteger.valueOf(1)));
+
+        result = (Map<String, BigInteger>) (refScore.call("getReferenceData", "BTC", "USD"));
+
+        assertEquals(newRates[0].multiply(E9), result.get("rate"));
+        assertEquals(resolveTime.multiply(E6), result.get("last_update_base"));
+    }
+
+    @Test
+    void relayWithPastTime() {
+        String[] symbols = { "BTC", "ICX" };
+        BigInteger[] rates = { new BigInteger("16841900000000"), new BigInteger("149978000") };
+        BigInteger resolveTime = BigInteger.valueOf(1671780359);
+        BigInteger requestID = BigInteger.valueOf(10323);
+        refScore.invoke(relayers[0], "relay", symbols, rates, resolveTime, requestID);
+
+        var result = (Map<String, BigInteger>) (refScore.call("getReferenceData", "BTC", "USD"));
+
+        assertEquals(rates[0].multiply(E9), result.get("rate"));
+        assertEquals(resolveTime.multiply(E6), result.get("last_update_base"));
+
+        BigInteger[] newRates = { new BigInteger("16900000000000"), new BigInteger("149980000") };
+        var newResolveTime = BigInteger.valueOf(1671780259);
+        refScore.invoke(relayers[1], "relay", symbols, newRates, newResolveTime, requestID.add(BigInteger.valueOf(1)));
+
+        result = (Map<String, BigInteger>) (refScore.call("getReferenceData", "BTC", "USD"));
+
+        assertEquals(rates[0].multiply(E9), result.get("rate"));
+        assertEquals(resolveTime.multiply(E6), result.get("last_update_base"));
     }
 }
