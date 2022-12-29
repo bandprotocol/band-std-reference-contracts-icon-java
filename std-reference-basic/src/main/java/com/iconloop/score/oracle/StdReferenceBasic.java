@@ -48,7 +48,7 @@ public class StdReferenceBasic {
         }
 
         BigInteger rate = rates.getOrDefault(symbol, BigInteger.ZERO);
-        BigInteger resolveTime = resolveTimes.getOrDefault(symbol, BigInteger.ZERO);
+        BigInteger resolveTime = resolveTimes.getOrDefault(symbol, BigInteger.ZERO).multiply(new BigInteger("1000000"));
         BigInteger requestID = requestIDs.getOrDefault(symbol, BigInteger.ZERO);
 
         Context.require(resolveTime.compareTo(BigInteger.ZERO) > 0, "REFDATANOTAVAILABLE");
@@ -112,7 +112,7 @@ public class StdReferenceBasic {
         for (int idx = 0; idx < symbols.length; idx++) {
             if (resolveTime.compareTo(this.resolveTimes.getOrDefault(symbols[idx], BigInteger.ZERO)) > 0) {
                 this.rates.set(symbols[idx], rates[idx]);
-                this.resolveTimes.set(symbols[idx], resolveTime.multiply(new BigInteger("1000000")));
+                this.resolveTimes.set(symbols[idx], resolveTime);
                 this.requestIDs.set(symbols[idx], requestID);
             }
         }
